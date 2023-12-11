@@ -1,6 +1,18 @@
 import pandas as pd
 from bs4 import BeautifulSoup
 from IPython.display import display
+from flask import Flask, send_file
+
+app = Flask(__name__)
+
+@app.route("/styled_dataframe")
+def get_styled_dataframe():
+    return send_file("styled_dataframe.html")
+
+
+if __name__ == "__main__":
+    app.run()
+
 
 # Read HTML data from a file
 with open("moneyball.html", "r", encoding="utf-8") as file:
@@ -31,25 +43,27 @@ targets = {
 }
 
 # Remove any non-numeric characters
-df['Pas %'] = df['Pas %'].str.replace('%', '', regex=False)
+df["Pas %"] = df["Pas %"].str.replace("%", "", regex=False)
 
 # Convert the column to integer
-df['Pas %'] = df['Pas %'].astype(int)
+df["Pas %"] = df["Pas %"].astype(int)
+
 
 def color_based_on_value(row):
     colors = []
     for val, name in zip(row, row.index):
-        if val >= targets['Good'][name]:
-            colors.append('color: green')
-        elif val >= targets['OK'][name]:
-            colors.append('color: orange')
+        if val >= targets["Good"][name]:
+            colors.append("color: green")
+        elif val >= targets["OK"][name]:
+            colors.append("color: orange")
         else:
-            colors.append('color: red')
+            colors.append("color: red")
     return colors
+
 
 # Convert the selected columns to numeric and round to 2 decimal places
 for col in ["xGP/90", "Con/90", "Int/90", "Pas %"]:
-    df[col] = pd.to_numeric(df[col], errors='coerce')
+    df[col] = pd.to_numeric(df[col], errors="coerce")
     if col != "Pas %":  # We don't want to round "Pas %" as it's converted to int
         df[col] = df[col].round(2)
 
@@ -59,5 +73,5 @@ styled_df = df.style.apply(color_based_on_value, subset=headers, axis=1)
 # Render to HTML
 html = styled_df._repr_html_()
 
-with open('styled_dataframe.html', 'w', encoding='utf-8') as f:
+with open("styled_dataframe.html", "w", encoding="utf-8") as f:
     f.write(html)
