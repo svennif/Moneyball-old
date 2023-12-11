@@ -1,18 +1,6 @@
 import pandas as pd
 from bs4 import BeautifulSoup
-from IPython.display import display
-from flask import Flask, send_file
-
-app = Flask(__name__)
-
-@app.route("/styled_dataframe")
-def get_styled_dataframe():
-    return send_file("styled_dataframe.html")
-
-
-if __name__ == "__main__":
-    app.run()
-
+from IPython.display import display, HTML
 
 # Read HTML data from a file
 with open("moneyball.html", "r", encoding="utf-8") as file:
@@ -37,7 +25,7 @@ headers = ["xGP/90", "Con/90", "Int/90", "Pas %"]
 
 # Define target values
 targets = {
-    "Good": {"xGP/90": 0.25, "Con/90": 0.75, "Int/90": 0.22, "Pas %": 97},
+    "Good": {"xGP/90": 0.25, "Con/90": 0.75, "Int/90": 0.22, "Pas %": 93},
     "OK": {"xGP/90": 0, "Con/90": 1.41, "Int/90": 0.1, "Pas %": 78},
     "Poor": {"xGP/90": -0.38, "Con/90": 2.15, "Int/90": 0.04, "Pas %": 47},
 }
@@ -46,32 +34,11 @@ targets = {
 df["Pas %"] = df["Pas %"].str.replace("%", "", regex=False)
 
 # Convert the column to integer
-df["Pas %"] = df["Pas %"].astype(int)
-
-
-def color_based_on_value(row):
-    colors = []
-    for val, name in zip(row, row.index):
-        if val >= targets["Good"][name]:
-            colors.append("color: green")
-        elif val >= targets["OK"][name]:
-            colors.append("color: orange")
-        else:
-            colors.append("color: red")
-    return colors
-
+df["Pas %"] = pd.to_numeric(df["Pas %"], errors="coerce").astype(int)
 
 # Convert the selected columns to numeric and round to 2 decimal places
-for col in ["xGP/90", "Con/90", "Int/90", "Pas %"]:
-    df[col] = pd.to_numeric(df[col], errors="coerce")
-    if col != "Pas %":  # We don't want to round "Pas %" as it's converted to int
-        df[col] = df[col].round(2)
+for col in ["xGP/90", "Con/90", "Int/90"]:
+    df[col] = pd.to_numeric(df[col], errors='coerce').round(2)
+    df[col] = df[col].fillna("-")
 
-# Now apply the color_based_on_value function only to selected columns
-styled_df = df.style.apply(color_based_on_value, subset=headers, axis=1)
-
-# Render to HTML
-html = styled_df._repr_html_()
-
-with open("styled_dataframe.html", "w", encoding="utf-8") as f:
-    f.write(html)
+print(df)
