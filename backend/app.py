@@ -1,4 +1,6 @@
 from flask import Flask
+import pandas as pd
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
@@ -8,11 +10,6 @@ def hello():
 
 if __name__ == '__main__':
     app.run()
-
-
-import pandas as pd
-from bs4 import BeautifulSoup
-from IPython.display import display, HTML
 
 # Read HTML data from a file
 with open("moneyball.html", "r", encoding="utf-8") as file:
